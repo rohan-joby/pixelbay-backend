@@ -45,11 +45,11 @@ exports.getOneCollection = async (req, res, next) => {
 
 exports.addToCollection = async (req, res, next) => {
   const userId = req.user.id;
-  const id = req.params.id;
+  const collectionId = req.params.id;
   const { id, url, username, name, link } = req.body;
   try {
     const collections = await Collections.updateOne(
-      { _id: id, userId: userId },
+      { _id: collectionId, userId: userId },
       { $push: { images: { id, url, username, name, link } } },
       { upsert: true, setDefaultsOnInsert: true }
     );
@@ -66,11 +66,11 @@ exports.addToCollection = async (req, res, next) => {
 
 exports.removeFromCollection = async (req, res, next) => {
   const userId = req.user.id;
-  const id = req.params.id;
+  const collectionId = req.params.id;
   const { imageId } = req.body;
   try {
     const collections = await Collections.update(
-      { _id: id, userId: userId },
+      { _id: collectionId, userId: userId },
       { $pull: { "images.id": imageId } }
     );
     const collection = await Collections.findOne({ _id: id, userId: userId });
