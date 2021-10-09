@@ -2,6 +2,8 @@ require("dotenv").config();
 const express = require("express");
 const authRoute = require("./routes/authRoutes");
 const likedRoute = require("./routes/likedRoutes");
+const collectionsRoute = require("./routes/collectionsRoute");
+
 const cors = require("cors");
 const connectDB = require("./config/db");
 const errorHandler = require("./middleware/errorHandler");
@@ -18,6 +20,7 @@ app.use("/api/auth", authRoute);
 
 //protected routes middleware
 app.use("/api", likedRoute);
+app.use("/api", collectionsRoute);
 
 //errorHandle middleware
 app.use(errorHandler);
