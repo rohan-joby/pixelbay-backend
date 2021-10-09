@@ -5,23 +5,26 @@ const CollectionsSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  name: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+  },
   images: [
     {
       id: {
         type: String,
-        required: true,
       },
       url: {
         type: String,
-        required: true,
       },
       username: {
         type: String,
-        required: true,
       },
       name: {
         type: String,
-        required: true,
       },
       link: {
         type: String,

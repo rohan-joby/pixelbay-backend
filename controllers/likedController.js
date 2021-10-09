@@ -6,6 +6,7 @@ exports.addLiked = async (req, res, next) => {
   const userId = req.user.id;
   try {
     const liked = await Liked.create({ id, url, username, name, link, userId });
+    console.log("new",liked);
     const updatedLiked = await Liked.find({ userId: userId });
     res.status(201).json({ success: true, message: "Note added successfully", liked:updatedLiked });
   } catch (error) {
@@ -46,6 +47,7 @@ exports.removeOneLiked = async (req, res, next) => {
   try {
     const deletion = await Liked.deleteOne({ id: id, userId: userId });
     const updatedLiked = await Liked.find({ userId: userId });
+    console.log("removal",updatedLiked);
     res
       .status(200)
       .json({ success: true, message: "Liked image deleted successfully", liked:updatedLiked });

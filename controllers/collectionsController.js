@@ -14,15 +14,30 @@ exports.getAllCollection = async (req, res, next) => {
   }
 };
 
+exports.addNewCollection = async (req, res, next) => {
+  const userId = req.user.id;
+  const { name, description} = req.body;
+  try {
+    const newCollection = await Collections.create({ userId: userId, name, description });
+    // if (!allCollections) {
+    //   next(new ErrorResponse("No collections found", 404));
+    // }
+    const collection = await Collections.findOne({ _id: id, userId: userId });
+    res.status(200).json({ success: true, message: newCollection, collections: collection });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getOneCollection = async (req, res, next) => {
   const id = req.params.id;
   const userId = req.user.id;
   try {
-    const collections = await Collections.findOne({ _id: id, userId: userId });
-    if (!collections) {
+    const collection = await Collections.findOne({ _id: id, userId: userId });
+    if (!collection) {
       next(new ErrorResponse("Collection not found", 404));
     }
-    res.status(200).json({ success: true, message: collections });
+    res.status(200).json({ success: true, message: collection });
   } catch (error) {
     next(error);
   }
@@ -31,15 +46,19 @@ exports.getOneCollection = async (req, res, next) => {
 exports.addToCollection = async (req, res, next) => {
   const userId = req.user.id;
   const id = req.params.id;
-  const {image} = req.body;
+  const { id, url, username, name, link } = req.body;
   try {
-    const collections = await Collections.update(
+    const collections = await Collections.updateOne(
       { _id: id, userId: userId },
-      { $push: { "images": image } }
+      { $push: { images: { id, url, username, name, link } } },
+      { upsert: true, setDefaultsOnInsert: true }
     );
-    res
-      .status(200)
-      .json({ success: true, message: "Liked image deleted successfully", collections:collections});
+    const collection = await Collections.findOne({ _id: id, userId: userId });
+    res.status(200).json({
+      success: true,
+      message: "image added to collection successfully",
+      collections: collection,
+    });
   } catch (error) {
     next(error);
   }
@@ -54,9 +73,12 @@ exports.removeFromCollection = async (req, res, next) => {
       { _id: id, userId: userId },
       { $pull: { "images.id": imageId } }
     );
-    res
-      .status(200)
-      .json({ success: true, message: "Liked image deleted successfully", collections:collections });
+    const collection = await Collections.findOne({ _id: id, userId: userId });
+    res.status(200).json({
+      success: true,
+      message: "image removed from collection successfully",
+      collections: collection,
+    });
   } catch (error) {
     next(error);
   }
@@ -70,9 +92,11 @@ exports.deleteOneCollection = async (req, res, next) => {
       { _id: id, userId: userId },
       { $pull: { "images.id": imageId } }
     );
-    res
-      .status(200)
-      .json({ success: true, message: "Liked image deleted successfully", collections:collections });
+    res.status(200).json({
+      success: true,
+      message: "Collection deleted successfully",
+      collections: collections,
+    });
   } catch (error) {
     next(error);
   }
