@@ -16,14 +16,24 @@ exports.getAllCollection = async (req, res, next) => {
 
 exports.addNewCollection = async (req, res, next) => {
   const userId = req.user.id;
-  const { name, description} = req.body;
+  const { name, description } = req.body;
   try {
-    const newCollection = await Collections.create({ userId: userId, name, description });
-    // if (!allCollections) {
-    //   next(new ErrorResponse("No collections found", 404));
-    // }
-    const collection = await Collections.findOne({ _id: id, userId: userId });
-    res.status(200).json({ success: true, message: newCollection, collections: collection });
+    const existingCollection = await Collections.exists({
+      userId: userId,
+      name: name,
+    });
+    if (existingCollection) {
+      return next(new ErrorResponse("Duplicate collection", 422));
+    }
+    const newCollection = await Collections.create({
+      userId: userId,
+      name,
+      description,
+    });
+    const collection = await Collections.find({ userId: userId });
+    res
+      .status(200)
+      .json({ success: true, message: newCollection, collections: collection });
   } catch (error) {
     next(error);
   }
@@ -50,14 +60,14 @@ exports.addToCollection = async (req, res, next) => {
   try {
     const collections = await Collections.updateOne(
       { _id: collectionId, userId: userId },
-      { $push: { images: { id, url, username, name, link } } },
-      { upsert: true, setDefaultsOnInsert: true }
+      { $push: { images: { id, url, username, name, link } } }
     );
-    const collection = await Collections.findOne({ _id: id, userId: userId });
+    const collection = await Collections.find({ userId: userId });
     res.status(200).json({
       success: true,
       message: "image added to collection successfully",
       collections: collection,
+      updated: collections,
     });
   } catch (error) {
     next(error);
@@ -69,16 +79,17 @@ exports.removeFromCollection = async (req, res, next) => {
   const collectionId = req.params.id;
   const { imageId } = req.body;
   try {
-    const collections = await Collections.update(
+    const collections = await Collections.updateOne(
       { _id: collectionId, userId: userId },
-      { $pull: { "images.id": imageId } }
+      { $pull: { images: {id:imageId} } }
     );
-    const collection = await Collections.findOne({ _id: id, userId: userId });
+    const collection = await Collections.find({ userId: userId });
     res.status(200).json({
       success: true,
       message: "image removed from collection successfully",
       collections: collection,
     });
+    console.log("updated collection",collection);
   } catch (error) {
     next(error);
   }
@@ -88,10 +99,8 @@ exports.deleteOneCollection = async (req, res, next) => {
   const userId = req.user.id;
   const id = req.params.id;
   try {
-    const collections = await Collections.deleteOne(
-      { _id: id, userId: userId },
-      { $pull: { "images.id": imageId } }
-    );
+    const deletion = await Collections.deleteOne({ _id: id, userId: userId });
+    const collections = await Collections.find({ userId: userId });
     res.status(200).json({
       success: true,
       message: "Collection deleted successfully",

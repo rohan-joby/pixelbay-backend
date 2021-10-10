@@ -21,7 +21,7 @@ exports.login = async (req, res, next) => {
     return next(new ErrorResponse("Please provide valid credentials!", 400));
   }
   try {
-    const user = await User.findOne({ email }, "username email password");
+    const user = await User.findOne({ email }, "email password firstName lastName");
     if (!user) {
       return next(new ErrorResponse("Please provide valid credentials!", 401));
     }
@@ -30,6 +30,7 @@ exports.login = async (req, res, next) => {
     if (!isMatch) {
       return next(new ErrorResponse("Invalid credentials!", 401));
     }
+    console.log("user",user)
     sendToken(user, 201, res);
   } catch (error) {
     next(error);
